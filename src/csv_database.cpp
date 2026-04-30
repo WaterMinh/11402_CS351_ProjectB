@@ -62,16 +62,15 @@ bool CSVDatabase::loadCSV(const std::string& filename) {
 void CSVDatabase::executeQuery(const std::string& query) {
     std::string q = query;
 
-    // Check SELECT
     size_t selectPos = q.find("SELECT ");
     size_t fromPos = q.find(" FROM ");
+    size_t wherePos = q.find(" WHERE ");
 
     if (selectPos == std::string::npos || fromPos == std::string::npos) {
         std::cout << "Invalid query syntax." << std::endl;
         return;
     }
 
-    // Extract columns
     std::string columnPart = q.substr(7, fromPos - 7);
     std::vector<std::string> selectedColumns;
 
@@ -81,17 +80,49 @@ void CSVDatabase::executeQuery(const std::string& query) {
         selectedColumns = split(columnPart, ',');
     }
 
-    // Print header
+    bool hasWhere = wherePos != std::string::npos;
+    std::string whereColumn;
+    std::string whereValue;
+
+    if (hasWhere) {
+        std::string condition = q.substr(wherePos + 7);
+        size_t equalPos = condition.find('=');
+
+        if (equalPos == std::string::npos) {
+            std::cout << "Invalid WHERE condition." << std::endl;
+            return;
+        }
+
+        whereColumn = trim(condition.substr(0, equalPos));
+        whereValue = trim(condition.substr(equalPos + 1));
+    }
+
     for (const auto& col : selectedColumns) {
         std::cout << col << "\t";
     }
     std::cout << std::endl;
 
-    // Print data
     for (const auto& row : rows) {
+        if (hasWhere) {
+            if (row.find(whereColumn) == row.end()) {
+                std::cout << "Invalid WHERE column: " << whereColumn << std::endl;
+                return;
+            }
+
+            if (row.at(whereColumn) != whereValue) {
+                continue;
+            }
+        }
+
         for (const auto& col : selectedColumns) {
+            if (row.find(col) == row.end()) {
+                std::cout << "Invalid selected column: " << col << std::endl;
+                return;
+            }
+
             std::cout << row.at(col) << "\t";
         }
+
         std::cout << std::endl;
     }
 }
