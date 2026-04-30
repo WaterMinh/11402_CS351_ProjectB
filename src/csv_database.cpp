@@ -36,13 +36,26 @@ bool CSVDatabase::loadCSV(const std::string& filename) {
 
     std::string line;
 
+    // Read header
     if (std::getline(file, line)) {
         columns = split(line, ',');
     }
 
+    // Read rows
+    while (std::getline(file, line)) {
+        std::vector<std::string> values = split(line, ',');
+        std::map<std::string, std::string> row;
+
+        for (size_t i = 0; i < columns.size() && i < values.size(); i++) {
+            row[columns[i]] = values[i];
+        }
+
+        rows.push_back(row);
+    }
+
     file.close();
 
-    std::cout << "CSV file loaded and parsed successfully." << std::endl;
+    std::cout << "CSV loaded. Rows: " << rows.size() << std::endl;
     return true;
 }
 
