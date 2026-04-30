@@ -60,5 +60,38 @@ bool CSVDatabase::loadCSV(const std::string& filename) {
 }
 
 void CSVDatabase::executeQuery(const std::string& query) {
-    std::cout << "Query execution will be implemented in the next tasks." << std::endl;
+    std::string q = query;
+
+    // Check SELECT
+    size_t selectPos = q.find("SELECT ");
+    size_t fromPos = q.find(" FROM ");
+
+    if (selectPos == std::string::npos || fromPos == std::string::npos) {
+        std::cout << "Invalid query syntax." << std::endl;
+        return;
+    }
+
+    // Extract columns
+    std::string columnPart = q.substr(7, fromPos - 7);
+    std::vector<std::string> selectedColumns;
+
+    if (columnPart == "*") {
+        selectedColumns = columns;
+    } else {
+        selectedColumns = split(columnPart, ',');
+    }
+
+    // Print header
+    for (const auto& col : selectedColumns) {
+        std::cout << col << "\t";
+    }
+    std::cout << std::endl;
+
+    // Print data
+    for (const auto& row : rows) {
+        for (const auto& col : selectedColumns) {
+            std::cout << row.at(col) << "\t";
+        }
+        std::cout << std::endl;
+    }
 }
